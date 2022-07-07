@@ -1,0 +1,13 @@
+LICENSE
+README.md
+setup.py
+spec_conv/__init__.py
+spec_conv/commandline.py
+spec_conv/spec_con.c
+spec_conv/spectrum_conversion.py
+spec_conv.egg-info/PKG-INFO
+spec_conv.egg-info/SOURCES.txt
+spec_conv.egg-info/dependency_links.txt
+spec_conv.egg-info/entry_points.txt
+spec_conv.egg-info/requires.txt
+spec_conv.egg-info/top_level.txt

@@ -143,7 +143,7 @@ def run_conversion(directory, input_extension, output_extension, outfile):
             txt_to_tge(directory)
     return
 
-def convert_spectra(parent_directory, input_extension, output_extension, deep=True, outfile): 
+def convert_spectra(parent_directory, input_extension, output_extension, deep=True, outfile='y'): 
     if deep == True: 
         dir_list = [x[0] for x in os.walk(parent_directory)]
         for sub_directory in dir_list: 

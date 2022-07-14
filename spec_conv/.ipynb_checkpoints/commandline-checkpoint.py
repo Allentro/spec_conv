@@ -73,7 +73,7 @@ def outfile_check(val):
     else: 
         print(f"Input value must be 'y' or 'n', not {val}") 
         val = input() 
-        val = input_type_check(val)
+        val = outfile_check(val)
     return val
 
 def input_conversion(it): 
@@ -108,8 +108,7 @@ def input_conversion(it):
 
 def main():
     parser = argparse.ArgumentParser(prog ='spec_conv',
-                                     description ='ENDF Nucleus and Decay data package.')
-  
+                                     description ='Command line tool for converting spectra.')
     args = parser.parse_args()
     initial_print() 
     val = input() 
@@ -126,12 +125,18 @@ def main():
         print('Type filename containing list of spectrum file names:')
         directory = input()
         spectrum_conversion.run_spec_conv(directory, inp, exp, it)
-    else: 
+    else:
         print('Type directory name for the conversions to take place')
         directory = input()
         print('Do you want an output file containing spectrum/a meta-data? (y/n)') 
         outfile = input()
         outfile = outfile_check(outfile)
-        spectrum_conversion.convert_spectra(directory, inp, oup, delete_original=True, rerun=False, outfile=outfile)
+        print('Does the spectrum have a specific name? (y/n)') 
+        name = input()
+        nama = outfile_check(name)
+        if name == 'y': 
+            print("Print the name of the spectra") 
+            name = input()
+        spectrum_conversion.convert_master(directory, inp, oup, delete_original=False, rerun=False, outfile=outfile, name=None)
         
         

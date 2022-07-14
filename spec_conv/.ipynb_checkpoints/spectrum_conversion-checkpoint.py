@@ -3,16 +3,19 @@ import pandas as pd
 import glob
 import os
 
-def info_file_to_txt(dirt, ext, output_ext): 
-    counter = 0
-    with open('spec_conv_file', 'w+') as file: 
-        for spec in os.listdir(dirt):
-            if spec.endswith(ext):
-                counter += 1
-                file.write(f'{os.path.join(dirt, spec)}\n')
-            #elif spec.endswith(output_ext): 
-            #    os.remove(os.path.join(dirt, spec))
-    return counter
+def info_file_to_txt(dirt, ext, output_ext, name=None): 
+    spec_list = []
+    for spec in os.listdir(dirt):
+        if spec.endswith(ext):
+            if name != None and name in spec: 
+                spec_list.append(os.path.join(dirt, spec))
+            else: 
+                spec_list.append(os.path.join(dirt, spec))
+    if len(spec_list) > 0:
+        with open(os.path.join(dirt,'spec_conv_file'), 'w+') as file: 
+            for spec in spec_list:
+                file.write(f'{spec}\n')
+    return len(spec_list)
 
 def spec_conv_type(in_ext, output_ext):
     if output_ext == '.tge': 
@@ -46,12 +49,12 @@ def spec_conv_type(in_ext, output_ext):
         print(f'Input and output formats {in_ext} and {output_ext} not accepted.')
     return run_type, tge
 
-def run_spec_conv(directory, input_ext='.Chn', output_ext='.spe', it=3):
+def run_spec_conv(directory, input_ext='.Chn', output_ext='.spe', it=3, name=None):
     run_type, tge = spec_conv_type(input_ext, output_ext)
-    counter = info_file_to_txt(directory, input_ext, output_ext)
+    counter = info_file_to_txt(directory, input_ext, output_ext, name=None)
     if counter == 0: 
         return None, None, counter, run_type
-    child = pexpect.spawn('spec_conv')
+    child = pexpect.spawn('/home/alletro/python_packages/spec_conv/spec_conv/spec_con')
     child.setwinsize(1000,1000)
     child.send(run_type)
     if it == 1: 
@@ -62,7 +65,7 @@ def run_spec_conv(directory, input_ext='.Chn', output_ext='.spe', it=3):
         child.sendline(directory)
     else: 
         child.send('y')
-        child.sendline('spec_conv_file')
+        child.sendline(f'{directory}/spec_conv_file')
     return child.read(), tge, counter, run_type
 
 def create_df_4(scrambled_data, parent_directory): 
@@ -127,9 +130,12 @@ def txt_to_tge(directory):
         os.rename(file, pre + new_extension)
     return
 
-def run_conversion(directory, input_extension, output_extension, outfile): 
-    output, tge, counter, run_type = run_spec_conv(directory, input_extension, output_extension)
-    os.remove('spec_conv_file')
+def run_conversion(directory, input_extension, output_extension, outfile, name=None): 
+    output, tge, counter, run_type = run_spec_conv(directory, input_extension, output_extension, name=None)
+    try:
+        os.remove(os.path.join(directory,"spec_conv_file"))
+    except: 
+        pass
     if counter == 0: 
         return
     elif outfile == 'y':
@@ -143,13 +149,12 @@ def run_conversion(directory, input_extension, output_extension, outfile):
             txt_to_tge(directory)
     return
 
-def convert_spectra(parent_directory, input_extension, output_extension, deep=True, outfile='y'): 
+def convert_spectra(parent_directory, input_extension, output_extension, deep=True, outfile='y', name=None): 
+    run_conversion(parent_directory, input_extension, output_extension, outfile, name=None)
     if deep == True: 
-        dir_list = [x[0] for x in os.walk(parent_directory)]
-        for sub_directory in dir_list: 
-            run_conversion(sub_directory, input_extension, output_extension, outfile)
-    else: 
-        run_conversion(parent_directory, input_extension, output_extension, outfile)
+        for root, dirs, files in os.walk(parent_directory, topdown=False):
+            for sub_directory in dirs: 
+                run_conversion(os.path.join(root,sub_directory), input_extension, output_extension, outfile, name=name)
     return
 
 def delete_conv_files(directory, out_ext):
@@ -185,13 +190,13 @@ def delete_original_files(directory, in_ext):
                 os.remove(f'{sub_directory}/{item}')
     return 
 
-def convert_spectra(directory, input_extension, output_extension, delete_original=True, rerun=False, outfile='y'):
+def convert_master(directory, input_extension, output_extension, delete_original=True, rerun=False, outfile='y', name=None):
     if input_extension != output_extension: 
         #if rerun and delete_orginal: 
         #    raise ValueError("The variables 'delete original' and 'rerun' cannot both be set as true.")
         if rerun: 
             delete_conv_files(directory, output_extension)
-        convert_spectra(directory, input_extension, output_extension, outfile)
+        convert_spectra(directory, input_extension, output_extension, outfile=outfile, name=None)
         check_file_count(directory, input_extension, output_extension)
         if delete_original: 
             delete_original_files(directory, input_extension) 
